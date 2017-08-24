@@ -1,0 +1,16 @@
+{
+  "name": "budget-app",
+  "version": "1.0.0",
+  "description": "Budget App(ES5)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Barry Blando",
+  "license": "ISC",
+  "devDependencies": {
+    "browser-sync": "^2.18.13",
+    "gulp": "^3.9.1",
+    "jshint": "^2.9.5"
+  }
+}
