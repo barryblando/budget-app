@@ -174,7 +174,7 @@ var appController = (function(budgetCtrl, UICtrl) {
   };
 
   return {
-    //I created it 'cause i want to have a place where we can put all the code that we want to be executed right at the beginning when app starts 
+    //I created it 'cause i want to have a place where I can put all the code that we want to be executed right at the beginning when app starts 
     init: function() {
       //application has started
       setupEventListeners();
