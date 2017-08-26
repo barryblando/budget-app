@@ -99,9 +99,11 @@ var budgetController = (function() {
    * it's always better to have one data structure where all the data goes 
    * instead of having a lot of random variables flowing around
    */
-  
+
+  //private data
   var data = {
     allItems: {
+      //sample of data pushed exp: [['1','hello,','2323'], ['2','hellow,','2323'], ['3','hellop,','2323']],
       exp: [],
       inc: []
     },
@@ -110,7 +112,38 @@ var budgetController = (function() {
       inc: 0
     }
   };
-  
+
+  return {
+    addItem: function(type, des, val) {
+      var newItem, ID;
+
+      // ID = last ID + 1 e.g data.allItems['exp'][data.allItems['exp'].length - 1].id + 1 
+      // ID = data.allItems['exp'][data.allItems['exp'].length -1][0] + 1
+
+      // Create new ID
+      if (data.allItems[type].length > 0) {
+        ID = data.allItems[type][data.allItems[type].length - 1].id + 1;
+      } else {
+        ID = 0;
+      }
+
+      // Create new Item based on 'inc' or 'exp' type
+      if (type === 'exp') {
+        newItem = new Expense(ID, des, val);
+      } else if (type === 'inc') {
+        newItem = new Income(ID, des, val);
+      }
+      //push the type to data structure which is exp or inc e.g allItems[exp or inc]
+      data.allItems[type].push(newItem);
+
+      // Return the new element
+      return newItem;
+    },
+    testing: function() {
+      console.log(data);
+    }
+  };
+
 
 })(); 
 
@@ -123,7 +156,9 @@ var UIController = (function() {
     inputType: '.add__type',
     inputDescription: '.add__description',
     inputValue: '.add__value',
-    inputBtn: '.add__btn'
+    inputBtn: '.add__btn',
+    incomeContainer: '.income__list',
+    expensesContainer: '.expenses__list'
   };
 
   return {
@@ -131,8 +166,46 @@ var UIController = (function() {
       return { 
         type: document.querySelector(DOMstrings.inputType).value, // will be either income or expense
         description: document.querySelector(DOMstrings.inputDescription).value,
-        value: document.querySelector(DOMstrings.inputValue).value
+        value: parseFloat(document.querySelector(DOMstrings.inputValue).value)
       };
+    },
+    addListItem: function(obj, type) { //pass the newItem object from appController to addListItem as obj
+      var html, newHtml, element;
+
+      //TODO Create HTMl string with placeholder text
+      if (type === 'inc') {
+        element = DOMstrings.incomeContainer;
+        html = '<div class="item clearfix" id="income-%id%"> <div class="item__description">%description%</div>  <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__delete"> <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button> </div></div></div>';
+      } else if(type === 'exp') {
+        element = DOMstrings.expensesContainer;
+        html = '<div class="item clearfix" id="expense-%id%"> <div class="item__description">%description%</div> <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__percentage">21%</div> <div class="item__delete"> <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button> </div> </div> </div>';
+      }
+      
+      //TODO Replace the placeholder text with actual data
+      newHtml = html.replace('%id%', obj.id);
+      newHtml = newHtml.replace('%description%', obj.description);
+      newHtml = newHtml.replace('%value%', obj.value);    
+
+      //TODO Insert the HTML into the DOM
+      //insert the newHtml that holds all the id description value in the element inc or exp
+      //we'll use beforeend so that all HTMl will be inserted as a child of these containers
+      //<reference https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML
+      document.querySelector(element).insertAdjacentHTML('beforeend', newHtml);
+    },
+    clearFields: function() {
+      var fields, fieldsArr;
+      fields = document.querySelectorAll(DOMstrings.inputDescription + ', ' +  DOMstrings.inputValue);
+
+      //this will trick the slice method into thinking that we give it an array so it will return an array, we can't do it like this fields.silce() 'cause fields is not an array.
+      fieldsArr = Array.prototype.slice.call(fields);
+
+      //we use foreach 'cause it moves over all of the elements of the fields array, and then sets the value of all of them back to empty string
+      //<reference https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
+      fieldsArr.forEach(function(current, index, arr) {
+        current.value = '';
+      });
+
+      fieldsArr[0].focus();
     },
     getDOMstrings: function() {
       //turn private DOMstrings to public so it can be access by the AppController
@@ -140,22 +213,38 @@ var UIController = (function() {
     }
   };
 })();
-
+ 
 // GLOBAL APP CONTROLLER
 var appController = (function(budgetCtrl, UICtrl) {
   'use strict';
 
-  var ctrlAddItem = function() {
-    // TODO : Get  the field input data
-    var input = UIController.getInput();
-    
-    // TODO : Add the item to the budget controller
-
-    // TODO : Add the New item to the UI 
-
+  var updateBudget = function() {
     // TODO : Calculate the Budget
 
-    // TODO : Display the budget on the UI
+    // TODO : Return the Budget
+
+    // TODO : Display the Budget on the UI
+  };
+
+  var ctrlAddItem = function() {
+    var input, newItem;
+    // TODO : Get the field input data
+    input = UIController.getInput();
+    
+    //isNaN = is not a number is to true, we'll use the not operator ! to make it false so we can get true if it is a number
+    if (input.description !== '' && !isNaN(input.value) && input.value > 0) {
+      // TODO : Add the item to the budget controller
+      newItem = budgetController.addItem(input.type, input.description, input.value);
+
+      // TODO : Add the New item to the UI 
+      UICtrl.addListItem(newItem, input.type);
+  
+      // TODO : Clear the fields
+      UICtrl.clearFields();
+  
+      // TODO :  Calculate and Update budget
+      updateBudget();
+    }
     
   };
 
@@ -174,7 +263,7 @@ var appController = (function(budgetCtrl, UICtrl) {
   };
 
   return {
-    //I created it 'cause i want to have a place where I can put all the code that we want to be executed right at the beginning when app starts 
+    //I created it 'cause I want to have a place where I can put all the code that I want to be executed right at the beginning when app starts e.g Eventlisteners 
     init: function() {
       //application has started
       setupEventListeners();
