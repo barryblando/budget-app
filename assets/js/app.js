@@ -6,7 +6,7 @@
       - Break up our code into logical parts which are the modules and then make them interact with one another,
         inside of separate, independent, and organized units.
   }
-  * TASK LIST
+  * TASK LIST [Planning Step 1]
 
   * UI MODULE [ VIEW ]: { 
     TODO: Get Input Values
@@ -26,8 +26,30 @@
 
   * Module Pattern: { Private and Public Data, Encapsulation and Separation of Concerns }
   * MP Secret is that it returns an object containing all of the functions that we want to be public to access.
-  * Data Encapsulation allows  us to hide the implementation details of a specific module from the outside scope so that we only expose a public interface which is sometimes called an API.
+  * Data Encapsulation allows us to hide the implementation details of a specific module from the outside scope so that we only expose a public interface which is sometimes called an API.
   * Separation of Concern is that each part of the application should only be interested in doing one thing independently
+
+  * TASK LIST [Planning Step 2]
+
+  * TODO: Add Event Handler
+  * TODO: Delete the Item from our Data Structure
+  * TODO: Delete the Item to the UI
+  * TODO: Re-calulate budget
+  * TODO: Update the UI
+
+  * Event Delegation P.S Important part in JS when it comes manipulating DOM
+    * Event Bubbling - When an event is fired or triggered will also be fired on all the parent elements 
+    * on at a time in a DOM tree until the HTML element which is the root and event that cause to happen is called 
+    * Target Element (e.g Button, etc) - this element is a property in the event object, this means that all the parent elements on which the event will also fire, 
+    * will know the target element of the element, which brings event bubbling to the Event Delegation in DOM tree 
+    * and if know where the event was fired you can simply attach an event handler to a parent element and wait for the event to bubble up, 
+    * and do whatever you intended to do with the target element.
+    * Event Delegation - is to not set up the event handler on the original element that you're interested in, 
+    * but to attach it to a parent element, basically catch the event there because it bubbles up, and act on the element that you're interested in using the target element property.
+
+    * Use Cases for Event Delegation
+      - When you have an element with lots of child elements that you're interested in;
+      - When you want an event handler attached to an element that is not yet in DOM when our page is loaded.
   
   */
 
@@ -110,7 +132,22 @@ var budgetController = (function() {
     totals: {
       exp: 0,
       inc: 0
-    }
+    },
+    budget: 0,
+    percentage: -1 //use negative -1 to say that something is nonexistent
+  };
+
+  var calculateTotal = function(type) {
+    /**
+     * sum = 0
+     * foreach the data [200, 400, 100]
+     * sum = 0 + 200 -> sum = 200 + 400 -> sum = 600 + 100 = 700
+     */
+    var sum = 0;
+    data.allItems[type].forEach(function(cur) {
+      sum += cur.value;
+    });
+    data.totals[type] = sum;
   };
 
   return {
@@ -137,14 +174,38 @@ var budgetController = (function() {
       data.allItems[type].push(newItem);
 
       // Return the new element
-      return newItem;
+      return newItem; 
+    },
+    calculateBudget: function() {
+      // TODO : calculate total income and expenses
+      calculateTotal('exp');
+      calculateTotal('inc');
+
+      // TODO : Calculate the Budget: income - expenses
+      data.budget = data.totals.inc - data.totals.exp;
+      
+      // TODO : Calculate the percentage of income that we spent
+      /* Expense = 100 and Income 200, spent 50% = 100/200 = 0.5 * 100 */
+      /* condition totals should only greater than 0 so it won't return infinity */
+      if(data.totals.inc > 0) {
+        data.percentage = Math.round((data.totals.exp / data.totals.inc) * 100);
+      } else {
+        data.percentage = -1;
+      }
+    },
+    getBudget: function() {
+      return {
+        budget: data.budget,
+        totalInc: data.totals.inc,
+        totalExp: data.totals.exp,
+        percentage: data.percentage
+      };
     },
     testing: function() {
       console.log(data);
     }
   };
-
-
+  
 })(); 
 
 // UI CONTROLLER
@@ -158,7 +219,11 @@ var UIController = (function() {
     inputValue: '.add__value',
     inputBtn: '.add__btn',
     incomeContainer: '.income__list',
-    expensesContainer: '.expenses__list'
+    expensesContainer: '.expenses__list',
+    budgetLabel: '.budget__value',
+    incomeLabel: '.budget__income--value',
+    expensesLabel: '.budget__expenses--value',
+    percentageLabel: '.budget__expenses--percentage'
   };
 
   return {
@@ -178,7 +243,7 @@ var UIController = (function() {
         html = '<div class="item clearfix" id="income-%id%"> <div class="item__description">%description%</div>  <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__delete"> <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button> </div></div></div>';
       } else if(type === 'exp') {
         element = DOMstrings.expensesContainer;
-        html = '<div class="item clearfix" id="expense-%id%"> <div class="item__description">%description%</div> <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__percentage">21%</div> <div class="item__delete"> <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button> </div> </div> </div>';
+        html = '<div class="item clearfix" id="expense-%id%"> <div class="item__description">%description%</div> <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__percentage">21%</div> <div class="item__delete"> <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button> </div></div></div>';
       }
       
       //TODO Replace the placeholder text with actual data
@@ -199,6 +264,8 @@ var UIController = (function() {
       //this will trick the slice method into thinking that we give it an array so it will return an array, we can't do it like this fields.silce() 'cause fields is not an array.
       fieldsArr = Array.prototype.slice.call(fields);
 
+      var f = document.querySelectorAll('add__description' + ', ' + 'add__value');
+
       //we use foreach 'cause it moves over all of the elements of the fields array, and then sets the value of all of them back to empty string
       //<reference https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
       fieldsArr.forEach(function(current, index, arr) {
@@ -206,6 +273,17 @@ var UIController = (function() {
       });
 
       fieldsArr[0].focus();
+    },
+    displayBudget: function(obj) {
+      document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget;
+      document.querySelector(DOMstrings.incomeLabel).textContent = obj.totalInc;
+      document.querySelector(DOMstrings.expensesLabel).textContent = obj.totalExp;
+      /* Display Percentage */
+      if(obj.percentage > 0) {
+        document.querySelector(DOMstrings.percentageLabel).textContent = obj.percentage + '%';
+      } else {
+        document.querySelector(DOMstrings.percentageLabel).textContent = '---' ;
+      }
     },
     getDOMstrings: function() {
       //turn private DOMstrings to public so it can be access by the AppController
@@ -220,10 +298,13 @@ var appController = (function(budgetCtrl, UICtrl) {
 
   var updateBudget = function() {
     // TODO : Calculate the Budget
+    budgetCtrl.calculateBudget();
 
     // TODO : Return the Budget
+    var budget = budgetCtrl.getBudget();
 
     // TODO : Display the Budget on the UI
+    UICtrl.displayBudget(budget);
   };
 
   var ctrlAddItem = function() {
@@ -245,7 +326,6 @@ var appController = (function(budgetCtrl, UICtrl) {
       // TODO :  Calculate and Update budget
       updateBudget();
     }
-    
   };
 
   var setupEventListeners = function() {
@@ -266,6 +346,12 @@ var appController = (function(budgetCtrl, UICtrl) {
     //I created it 'cause I want to have a place where I can put all the code that I want to be executed right at the beginning when app starts e.g Eventlisteners 
     init: function() {
       //application has started
+      UICtrl.displayBudget({
+        budget: 0,
+        totalInc: 0,
+        totalExp: 0,
+        percentage: 0
+      });
       setupEventListeners();
     }
   };

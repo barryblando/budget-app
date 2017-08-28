@@ -4,7 +4,11 @@
   "description": "Budget App(ES5)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "codeceptjs run . --steps"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/barryblando/budget-app.git"
   },
   "author": "Barry Blando",
   "license": "ISC",
