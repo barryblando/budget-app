@@ -223,7 +223,8 @@ var UIController = (function() {
     budgetLabel: '.budget__value',
     incomeLabel: '.budget__income--value',
     expensesLabel: '.budget__expenses--value',
-    percentageLabel: '.budget__expenses--percentage'
+    percentageLabel: '.budget__expenses--percentage',
+    container: '.container'
   };
 
   return {
@@ -240,10 +241,10 @@ var UIController = (function() {
       //TODO Create HTMl string with placeholder text
       if (type === 'inc') {
         element = DOMstrings.incomeContainer;
-        html = '<div class="item clearfix" id="income-%id%"> <div class="item__description">%description%</div>  <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__delete"> <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button> </div></div></div>';
+        html = '<div class="item clearfix" id="inc-%id%"> <div class="item__description">%description%</div>  <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__delete"> <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button> </div></div></div>';
       } else if(type === 'exp') {
         element = DOMstrings.expensesContainer;
-        html = '<div class="item clearfix" id="expense-%id%"> <div class="item__description">%description%</div> <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__percentage">21%</div> <div class="item__delete"> <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button> </div></div></div>';
+        html = '<div class="item clearfix" id="exp-%id%"> <div class="item__description">%description%</div> <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__percentage">21%</div> <div class="item__delete"> <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button> </div></div></div>';
       }
       
       //TODO Replace the placeholder text with actual data
@@ -328,6 +329,27 @@ var appController = (function(budgetCtrl, UICtrl) {
     }
   };
 
+  // Event Delegation
+  var ctrlDeleteItem = function(e) {
+    var itemID, splitID, type, ID;
+    // Let's test where target element triggered, if you don't use parentNode only the element that is clicked will be returned not the parent element. 
+    // Let's do DOM traversing, event bubbling using parentNode 4x to access the id income parent when i element is triggered
+    //console.log(e.target.parentNode.parentNode.parentNode.parentNode.id);
+    itemID = e.target.parentNode.parentNode.parentNode.parentNode.id;
+    if(itemID) {
+      //let's split inc-1 ['inc', '1']; javascript wraps so it can automatically turn a primitive into an object
+      splitID = itemID.split('-');
+      type = splitID[0];
+      ID = splitID[1]; 
+      
+      // TODO : Delete the Item from the data Structure
+
+      // TODO : Delete the Item  from the unpaid
+
+      // TODO : Update and Show the new Budget
+    }
+  };
+
   var setupEventListeners = function() {
     var DOM = UIController.getDOMstrings();
 
@@ -340,6 +362,9 @@ var appController = (function(budgetCtrl, UICtrl) {
         ctrlAddItem(); 
       }
     });
+
+    //Do some event listener to all the element using the parent element container
+    document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
   };
 
   return {
