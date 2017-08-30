@@ -97,10 +97,14 @@
   })(budgetController, UIController);
   */
 
-// BUDGET CONTROLLER
+/**
+ * BUDGET CONTROLLER
+ */
+
 var budgetController = (function() { 
   'use strict';
 
+  //<reference https://stackoverflow.com/questions/3350215/what-is-returned-from-a-constructor
   //create a private function constructor p.s always use capital letter in the beginning
   var Expense = function(id, description, value) {
     this.id = id;
@@ -176,6 +180,26 @@ var budgetController = (function() {
       // Return the new element
       return newItem; 
     },
+    deleteItem: function(type, id) {
+      var ids, index;
+      // id = 6
+      // data.allItems[type][index][id];
+      // ids: [{1, 'hello', 2323}, {2, 'hellow', 2323}, {3, 'hellop', 2323}, {6, 'hellop',323}]; index = 3
+
+      // Map returns a brand new array
+      ids = data.allItems[type].map(function(current) {
+        return current.id;
+        /* returns 0 : 1,  1 : 2, 2 : 3, 3 : 6 */
+      });
+
+      // search and returns the index number of the element of the array that we innput
+      index = ids.indexOf(id);
+
+      if(index !== -1) {
+        //remove elements using splice(index position number, number of elements)
+        data.allItems[type].splice(index, 1);
+      }
+    },
     calculateBudget: function() {
       // TODO : calculate total income and expenses
       calculateTotal('exp');
@@ -208,7 +232,10 @@ var budgetController = (function() {
   
 })(); 
 
-// UI CONTROLLER
+/**
+ * UI CONTROLLER
+ */
+
 var UIController = (function() {
   'use strict';
 
@@ -258,14 +285,17 @@ var UIController = (function() {
       //<reference https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML
       document.querySelector(element).insertAdjacentHTML('beforeend', newHtml);
     },
+    deleteListItem: function(selectorID) { 
+      // delete child element by itself
+      var el = document.getElementById(selectorID);
+      el.parentNode.removeChild(el);
+    },
     clearFields: function() {
       var fields, fieldsArr;
       fields = document.querySelectorAll(DOMstrings.inputDescription + ', ' +  DOMstrings.inputValue);
 
       //this will trick the slice method into thinking that we give it an array so it will return an array, we can't do it like this fields.silce() 'cause fields is not an array.
       fieldsArr = Array.prototype.slice.call(fields);
-
-      var f = document.querySelectorAll('add__description' + ', ' + 'add__value');
 
       //we use foreach 'cause it moves over all of the elements of the fields array, and then sets the value of all of them back to empty string
       //<reference https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
@@ -293,10 +323,14 @@ var UIController = (function() {
   };
 })();
  
-// GLOBAL APP CONTROLLER
+/**
+ * GLOBAL APP CONTROLLER
+ */
+
 var appController = (function(budgetCtrl, UICtrl) {
   'use strict';
 
+  /** UPDATE BUDGET **/
   var updateBudget = function() {
     // TODO : Calculate the Budget
     budgetCtrl.calculateBudget();
@@ -308,6 +342,7 @@ var appController = (function(budgetCtrl, UICtrl) {
     UICtrl.displayBudget(budget);
   };
 
+  /** ADD ITEM **/
   var ctrlAddItem = function() {
     var input, newItem;
     // TODO : Get the field input data
@@ -329,9 +364,10 @@ var appController = (function(budgetCtrl, UICtrl) {
     }
   };
 
-  // Event Delegation
+  /** DELETE ITEM  **/
   var ctrlDeleteItem = function(e) {
     var itemID, splitID, type, ID;
+    // Event Delegation
     // Let's test where target element triggered, if you don't use parentNode only the element that is clicked will be returned not the parent element. 
     // Let's do DOM traversing, event bubbling using parentNode 4x to access the id income parent when i element is triggered
     //console.log(e.target.parentNode.parentNode.parentNode.parentNode.id);
@@ -340,16 +376,21 @@ var appController = (function(budgetCtrl, UICtrl) {
       //let's split inc-1 ['inc', '1']; javascript wraps so it can automatically turn a primitive into an object
       splitID = itemID.split('-');
       type = splitID[0];
-      ID = splitID[1]; 
+      //convert string to integer
+      ID = parseInt(splitID[1]); 
       
       // TODO : Delete the Item from the data Structure
+      budgetCtrl.deleteItem(type, ID);
 
       // TODO : Delete the Item  from the unpaid
+      UICtrl.deleteListItem(itemID);
 
       // TODO : Update and Show the new Budget
+      updateBudget();
     }
   };
 
+  /** SETUP EVENT LISTENERS  **/
   var setupEventListeners = function() {
     var DOM = UIController.getDOMstrings();
 
