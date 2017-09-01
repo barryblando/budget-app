@@ -8,48 +8,58 @@
   }
   * TASK LIST [Planning Step 1]
 
-  * UI MODULE [ VIEW ]: { 
-    TODO: Get Input Values
-    TODO: Add the New Item to the UI
-    TODO: Update the UI
-  }
-  
-  * DATA MODULE [ MODEL ]: { 
-    TODO: Add the new Item to Our Data Structure
-    TODO: Calculate Budget
-  }
+    * UI MODULE [ VIEW ]: { 
+      TODO: Get Input Values
+      TODO: Add the New Item to the UI
+      TODO: Update the UI
+    }
+    
+    * DATA MODULE [ MODEL ]: { 
+      TODO: Add the new Item to Our Data Structure
+      TODO: Calculate Budget
+    }
 
-  //Control the Entire App and acting as a link
-  * CONTROLLER MODULE [ CONTROLLER ]: { 
-    TODO: Add Event Handler
-  }
+    //Control the Entire App and acting as a link
+    * CONTROLLER MODULE [ CONTROLLER ]: { 
+      TODO: Add Event Handler
+    }
 
-  * Module Pattern: { Private and Public Data, Encapsulation and Separation of Concerns }
-  * MP Secret is that it returns an object containing all of the functions that we want to be public to access.
-  * Data Encapsulation allows us to hide the implementation details of a specific module from the outside scope so that we only expose a public interface which is sometimes called an API.
-  * Separation of Concern is that each part of the application should only be interested in doing one thing independently
+    * Module Pattern: { Private and Public Data, Encapsulation and Separation of Concerns }
+    * MP Secret is that it returns an object containing all of the functions that we want to be public to access.
+    * Data Encapsulation allows us to hide the implementation details of a specific module from the outside scope so that we only expose a public interface which is sometimes called an API.
+    * Separation of Concern is that each part of the application should only be interested in doing one thing independently
 
   * TASK LIST [Planning Step 2]
 
-  * TODO: Add Event Handler
-  * TODO: Delete the Item from our Data Structure
-  * TODO: Delete the Item to the UI
-  * TODO: Re-calulate budget
-  * TODO: Update the UI
+    * TODO: Add Event Handler
+    * TODO: Delete the Item from our Data Structure
+    * TODO: Delete the Item to the UI
+    * TODO: Re-calulate budget
+    * TODO: Update the UI
 
-  * Event Delegation P.S Important part in JS when it comes manipulating DOM
-    * Event Bubbling - When an event is fired or triggered will also be fired on all the parent elements 
-    * on at a time in a DOM tree until the HTML element which is the root and event that cause to happen is called 
-    * Target Element (e.g Button, etc) - this element is a property in the event object, this means that all the parent elements on which the event will also fire, 
-    * will know the target element of the element, which brings event bubbling to the Event Delegation in DOM tree 
-    * and if know where the event was fired you can simply attach an event handler to a parent element and wait for the event to bubble up, 
-    * and do whatever you intended to do with the target element.
-    * Event Delegation - is to not set up the event handler on the original element that you're interested in, 
-    * but to attach it to a parent element, basically catch the event there because it bubbles up, and act on the element that you're interested in using the target element property.
+    * Event Delegation P.S Important part in JS when it comes manipulating DOM
+      * Event Bubbling - When an event is fired or triggered will also be fired on all the parent elements 
+      * on at a time in a DOM tree until the HTML element which is the root and event that cause to happen is called 
+      * Target Element (e.g Button, etc) - this element is a property in the event object, this means that all the parent elements on which the event will also fire, 
+      * will know the target element of the element, which brings event bubbling to the Event Delegation in DOM tree 
+      * and if know where the event was fired you can simply attach an event handler to a parent element and wait for the event to bubble up, 
+      * and do whatever you intended to do with the target element.
+      * Event Delegation - is to not set up the event handler on the original element that you're interested in, 
+      * but to attach it to a parent element, basically catch the event there because it bubbles up, and act on the element that you're interested in using the target element property.
 
-    * Use Cases for Event Delegation
-      - When you have an element with lots of child elements that you're interested in;
-      - When you want an event handler attached to an element that is not yet in DOM when our page is loaded.
+      * Use Cases for Event Delegation
+        - When you have an element with lots of child elements that you're interested in;
+        - When you want an event handler attached to an element that is not yet in DOM when our page is loaded.
+
+  * TASK LIST [Planning Step 3]
+    * TODO: Calculate Percentages in Expense Column 
+    * TODO: Update Percentages in Expense UI 
+    * TODO: Display the Current Month and Year
+    * TODO: Number Formatting
+    * TODO: Improve input field UX
+
+
+
   
   */
 
@@ -110,6 +120,21 @@ var budgetController = (function() {
     this.id = id;
     this.description = description;
     this.value = value;
+    this.percentage = -1;
+  };
+
+  // Calculate
+  Expense.prototype.calcPercentage = function(totalIncome) {
+    if (totalIncome > 0) {
+      this.percentage = Math.round((this.value / totalIncome) * 100);
+    } else {
+      this.percentage = -1;
+    }
+  };
+
+  // Return
+  Expense.prototype.getPercentage = function() {
+    return this.percentage;
   };
 
   var Income = function(id, description, value) {
@@ -177,7 +202,7 @@ var budgetController = (function() {
       //push the type to data structure which is exp or inc e.g allItems[exp or inc]
       data.allItems[type].push(newItem);
 
-      // Return the new element
+      // Return the new element which contains id, description, value
       return newItem; 
     },
     deleteItem: function(type, id) {
@@ -192,7 +217,7 @@ var budgetController = (function() {
         /* returns 0 : 1,  1 : 2, 2 : 3, 3 : 6 */
       });
 
-      // search and returns the index number of the element of the array that we innput
+      // search and returns the index number of the element of the array that we input
       index = ids.indexOf(id);
 
       if(index !== -1) {
@@ -216,6 +241,18 @@ var budgetController = (function() {
       } else {
         data.percentage = -1;
       }
+    },
+    calculatePercentages: function() {
+      data.allItems.exp.forEach(function(cur) {
+        cur.calcPercentage(data.totals.inc);
+      });
+    },
+    getPercentages: function() {
+      //Imagine if we have 5 expense in our array here
+      var allPerc = data.allItems.exp.map(function(cur){
+        return cur.getPercentage(); //so then this here would get called five times, for each of the five elements, return it and store in allPerc
+      });
+      return allPerc; 
     },
     getBudget: function() {
       return {
@@ -251,7 +288,39 @@ var UIController = (function() {
     incomeLabel: '.budget__income--value',
     expensesLabel: '.budget__expenses--value',
     percentageLabel: '.budget__expenses--percentage',
-    container: '.container'
+    container: '.container',
+    expensesPercLabel: '.item__percentage',
+    dateLabel : '.budget__title--month'
+  };
+
+  var formatNumber = function(num, type) {
+    var numSplit, int, dec, sign;
+    /**
+     * before number + or - 
+     * exactlty 2 decimal points
+     * comma separating the thousands
+     * Sample 2310.4567 -> + 2,310.46
+     */
+
+    //absolute simple removes the sign off the number, let's use the same num 'cause it's only a regular variable, so I'm basically overriding the num arguemnt.
+     num = Math.abs(num);
+     //Use toFixed method from Number prototype, js automatically converts primitive to object if we want.
+     num = num.toFixed(2);
+     // split into two parts and will be stored in array
+     numSplit = num.split('.');
+
+     int = numSplit[0];
+     //if string length is greater than 3 add comma
+    if(int.length > 3) {
+      int = int.substr(0, int.length -3) + ',' + int.substr(int.length -3, int.length); //input 2310, output 2,310 or input 23510, output 23,510 and so on..
+    }
+
+     dec = numSplit[1];
+
+     //type === 'exp' ? sign = '-' : sign = '+';
+
+     return (type === 'exp' ? '-' : '+' ) + ' ' + int + '.' + dec;
+
   };
 
   return {
@@ -259,7 +328,7 @@ var UIController = (function() {
       return { 
         type: document.querySelector(DOMstrings.inputType).value, // will be either income or expense
         description: document.querySelector(DOMstrings.inputDescription).value,
-        value: parseFloat(document.querySelector(DOMstrings.inputValue).value)
+        value: parseFloat(document.querySelector(DOMstrings.inputValue).value) // only integer/float will be accepted in input value
       };
     },
     addListItem: function(obj, type) { //pass the newItem object from appController to addListItem as obj
@@ -275,9 +344,9 @@ var UIController = (function() {
       }
       
       //TODO Replace the placeholder text with actual data
-      newHtml = html.replace('%id%', obj.id);
-      newHtml = newHtml.replace('%description%', obj.description);
-      newHtml = newHtml.replace('%value%', obj.value);    
+      newHtml = html.replace('%id%', obj.id); //search for the id, replace and store new data
+      newHtml = newHtml.replace('%description%', obj.description); // search for desc, replace, and store new data
+      newHtml = newHtml.replace('%value%', formatNumber(obj.value)); // search for value, replace, and store new data 
 
       //TODO Insert the HTML into the DOM
       //insert the newHtml that holds all the id description value in the element inc or exp
@@ -292,29 +361,67 @@ var UIController = (function() {
     },
     clearFields: function() {
       var fields, fieldsArr;
+      //returns a node list, in a DOMtree, where all of the html elements of our page are stored, each element is called a node, Nodelist does not have the forEach method
       fields = document.querySelectorAll(DOMstrings.inputDescription + ', ' +  DOMstrings.inputValue);
 
       //this will trick the slice method into thinking that we give it an array so it will return an array, we can't do it like this fields.silce() 'cause fields is not an array.
+      //call slice method in the Array prototype using .call so that it becomes the this variable
+      //Array is the function constructor of all arrays and slice methods is in its prototype
       fieldsArr = Array.prototype.slice.call(fields);
 
       //we use foreach 'cause it moves over all of the elements of the fields array, and then sets the value of all of them back to empty string
       //<reference https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
       fieldsArr.forEach(function(current, index, arr) {
+        //set the input.value property (description & value) of these back to empty
         current.value = '';
       });
 
       fieldsArr[0].focus();
     },
     displayBudget: function(obj) {
-      document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget;
-      document.querySelector(DOMstrings.incomeLabel).textContent = obj.totalInc;
-      document.querySelector(DOMstrings.expensesLabel).textContent = obj.totalExp;
+      var type;
+      obj.budget > 0 ? type = 'inc' : type = 'exp';
+
+      document.querySelector(DOMstrings.budgetLabel).textContent = formatNumber(obj.budget, type);
+      document.querySelector(DOMstrings.incomeLabel).textContent = formatNumber(obj.totalInc, 'inc');
+      document.querySelector(DOMstrings.expensesLabel).textContent = formatNumber(obj.totalExp, 'exp');
       /* Display Percentage */
       if(obj.percentage > 0) {
         document.querySelector(DOMstrings.percentageLabel).textContent = obj.percentage + '%';
       } else {
         document.querySelector(DOMstrings.percentageLabel).textContent = '---' ;
-      }
+      } 
+    },
+    displayPercentages: function(percentages) {
+      var fields;
+      fields = document.querySelectorAll(DOMstrings.expensesPercLabel);
+
+      //let's create forEach method for Nodelist instead of Array
+      //call fields as list & anonymous function as callback
+      var nodeListForEach = function(list, callback) {
+          for(var i = 0; i < list.length; i++) {
+            // call the callback function
+            callback(list[i], i);
+          }
+      };
+
+      nodeListForEach(fields, function(current, index){
+        if(percentages[index] > 0) {
+          //document.querySelectorAll('.item__percentage').textContent = percentages[0++] + %
+          current.textContent = percentages[index] + '%';
+        } else {
+          current.textContent = '---';
+        }
+      });
+    },
+    displayMonth: function() {
+      var now, year, month, months;
+      now = new Date();
+      //christmas = new Date(2017, 11(0 based), 25);
+      months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; 
+      month = now.getMonth();
+      year =  now.getFullYear();
+      document.querySelector(DOMstrings.dateLabel).textContent = months[month] + ' ' + year;
     },
     getDOMstrings: function() {
       //turn private DOMstrings to public so it can be access by the AppController
@@ -327,7 +434,7 @@ var UIController = (function() {
  * GLOBAL APP CONTROLLER
  */
 
-var appController = (function(budgetCtrl, UICtrl) {
+var APPController = (function(budgetCtrl, UICtrl) {
   'use strict';
 
   /** UPDATE BUDGET **/
@@ -340,6 +447,18 @@ var appController = (function(budgetCtrl, UICtrl) {
 
     // TODO : Display the Budget on the UI
     UICtrl.displayBudget(budget);
+  };
+
+  /** UPDATE PERCENTAGES **/
+  var updatePercentages = function() {
+    // TODO : Calculate the Percentages
+    budgetCtrl.calculatePercentages();
+
+    // TODO : Read percentage from the Budget Controller
+    var percentages = budgetCtrl.getPercentages();
+
+    // TODO : Update the UI with the new percentages
+    UICtrl.displayPercentages(percentages);
   };
 
   /** ADD ITEM **/
@@ -361,6 +480,9 @@ var appController = (function(budgetCtrl, UICtrl) {
   
       // TODO :  Calculate and Update budget
       updateBudget();
+
+      // TODO : Calculate and Update Percentages
+      updatePercentages();
     }
   };
 
@@ -382,11 +504,14 @@ var appController = (function(budgetCtrl, UICtrl) {
       // TODO : Delete the Item from the data Structure
       budgetCtrl.deleteItem(type, ID);
 
-      // TODO : Delete the Item  from the unpaid
+      // TODO : Delete the Item  from the UI 
       UICtrl.deleteListItem(itemID);
 
       // TODO : Update and Show the new Budget
       updateBudget();
+
+      // TODO : Calculate and Update Percentages
+      updatePercentages();
     }
   };
 
@@ -411,7 +536,8 @@ var appController = (function(budgetCtrl, UICtrl) {
   return {
     //I created it 'cause I want to have a place where I can put all the code that I want to be executed right at the beginning when app starts e.g Eventlisteners 
     init: function() {
-      //application has started
+      //application has started & reset all values
+      UICtrl.displayMonth();
       UICtrl.displayBudget({
         budget: 0,
         totalInc: 0,
@@ -425,4 +551,4 @@ var appController = (function(budgetCtrl, UICtrl) {
 })(budgetController, UIController);
 
 //initiliaze application
-appController.init();
+APPController.init();
