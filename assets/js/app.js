@@ -323,6 +323,15 @@ var UIController = (function() {
 
   };
 
+  //let's create forEach method for Nodelist instead of Array
+  //call fields as list & anonymous function as callback
+  var nodeListForEach = function(list, callback) {
+    for(var i = 0; i < list.length; i++) {
+      // call the callback function
+      callback(list[i], i);
+    }
+  };
+
   return {
     getInput: function() {
       return { 
@@ -396,15 +405,6 @@ var UIController = (function() {
       var fields;
       fields = document.querySelectorAll(DOMstrings.expensesPercLabel);
 
-      //let's create forEach method for Nodelist instead of Array
-      //call fields as list & anonymous function as callback
-      var nodeListForEach = function(list, callback) {
-          for(var i = 0; i < list.length; i++) {
-            // call the callback function
-            callback(list[i], i);
-          }
-      };
-
       nodeListForEach(fields, function(current, index){
         if(percentages[index] > 0) {
           //document.querySelectorAll('.item__percentage').textContent = percentages[0++] + %
@@ -422,6 +422,21 @@ var UIController = (function() {
       month = now.getMonth();
       year =  now.getFullYear();
       document.querySelector(DOMstrings.dateLabel).textContent = months[month] + ' ' + year;
+    },
+    changedType: function() {
+      var fields;
+
+      //return Nodelists
+      fields = document.querySelectorAll(
+        DOMstrings.inputType + ',' +
+        DOMstrings.inputDescription + ',' +
+        DOMstrings.inputValue
+      ); 
+
+      nodeListForEach(fields, function(cur){
+        cur.classList.toggle('red-focus');
+      });
+      document.querySelector(DOMstrings.inputBtn).classList.toggle('red');
     },
     getDOMstrings: function() {
       //turn private DOMstrings to public so it can be access by the AppController
@@ -531,6 +546,8 @@ var APPController = (function(budgetCtrl, UICtrl) {
 
     //Do some event listener to all the element using the parent element container
     document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
+
+    document.querySelector(DOM.inputType).addEventListener('change', UICtrl.changedType);
   };
 
   return {
