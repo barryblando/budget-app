@@ -320,7 +320,6 @@ var UIController = (function() {
      //type === 'exp' ? sign = '-' : sign = '+';
 
      return (type === 'exp' ? '-' : '+' ) + ' ' + int + '.' + dec;
-
   };
 
   //let's create forEach method for Nodelist instead of Array
@@ -332,6 +331,7 @@ var UIController = (function() {
     }
   };
 
+  //return function so it can be access outside the UIController Scope
   return {
     getInput: function() {
       return { 
@@ -506,7 +506,7 @@ var APPController = (function(budgetCtrl, UICtrl) {
     var itemID, splitID, type, ID;
     // Event Delegation
     // Let's test where target element triggered, if you don't use parentNode only the element that is clicked will be returned not the parent element. 
-    // Let's do DOM traversing, event bubbling using parentNode 4x to access the id income parent when i element is triggered
+    // Let's do DOM traversing, event bubbling using parentNode 4x to access the id income parent when <i></i> element is triggered
     //console.log(e.target.parentNode.parentNode.parentNode.parentNode.id);
     itemID = e.target.parentNode.parentNode.parentNode.parentNode.id;
     if(itemID) {
