@@ -1,6 +1,5 @@
 {
-  "jshint.config": "D:/XAMPP/htdocs/budget-app/.jshintrc",
-  "eslint.enable": false,
+  /*"jshint.config": "D:/XAMPP/htdocs/budget-app/.jshintrc",*/
   "editor.quickSuggestions": {
     "other": true,
     "comments": true,
